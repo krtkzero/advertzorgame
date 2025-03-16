@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useGame } from '../context/GameContext';
 import Tooltip from './shared/Tooltip';
+import kartikProfile from '../assets/kartik-profile.jpg';
 
 const HomeScreen = () => {
   const { dispatch } = useGame();
@@ -31,9 +32,14 @@ const HomeScreen = () => {
             href="https://www.linkedin.com/in/kartikojha/"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-lg text-blue-600 hover:text-blue-800 transition-colors duration-200"
+            className="flex items-center gap-2 text-lg text-blue-600 hover:text-blue-800 transition-colors duration-200 font-medium"
           >
-            by Kartik
+            <img 
+              src={kartikProfile} 
+              alt="Kartik Ojha"
+              className="w-8 h-8 rounded-full object-cover border-2 border-blue-600"
+            />
+            <span className="font-bold">by Kartik</span>
           </a>
         </div>
         <p className="text-2xl text-blue-700 font-semibold">

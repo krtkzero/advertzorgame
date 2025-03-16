@@ -23,9 +23,19 @@ const HomeScreen = () => {
         transition={{ duration: 0.5 }}
         className="mb-8"
       >
-        <h1 className="text-5xl font-bold text-blue-900 mb-4">
-          🎯 Advertzor
-        </h1>
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <h1 className="text-5xl font-bold text-blue-900">
+            🎯 Advertzor
+          </h1>
+          <a 
+            href="https://www.linkedin.com/in/kartikojha/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-lg text-blue-600 hover:text-blue-800 transition-colors duration-200"
+          >
+            by Kartik
+          </a>
+        </div>
         <p className="text-2xl text-blue-700 font-semibold">
           The Ultimate AdTech Simulator
         </p>

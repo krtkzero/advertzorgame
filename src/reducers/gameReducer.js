@@ -1,5 +1,11 @@
+import { GENRE_POWERS } from '../utils/genrePowers';
+
 export const initialState = {
   currentPhase: 'home',
+  appGenre: null,
+  genreMetrics: null,
+  selectedGenre: null,
+  activeModifiers: {},
   budget: 1000,
   audienceTargeting: {
     ageGroup: null,
@@ -65,6 +71,21 @@ export const gameReducer = (state, action) => {
         currentPhase: action.payload
       };
     
+    case 'SET_APP_GENRE':
+      return {
+        ...state,
+        appGenre: action.payload.genre,
+        genreMetrics: action.payload.metrics
+      };
+
+    case 'SET_GENRE': {
+      return {
+        ...state,
+        selectedGenre: action.payload,
+        activeModifiers: GENRE_POWERS[action.payload] || {}
+      };
+    }
+
     case 'SET_BUDGET':
       return {
         ...state,

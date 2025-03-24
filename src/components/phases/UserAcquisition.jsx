@@ -2,10 +2,13 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useGame } from '../../context/GameContext';
 import Tooltip from '../shared/Tooltip';
+import StrategySimulator from '../features/StrategySimulator';
+import Slider from '@mui/material/Slider';
 
 const UserAcquisition = () => {
   const { state, dispatch } = useGame();
   const [step, setStep] = useState('budget');
+  const [showSimulator, setShowSimulator] = useState(false);
 
   const handleBudgetChange = (value) => {
     dispatch({ type: 'SET_BUDGET', payload: value });
@@ -62,35 +65,37 @@ const UserAcquisition = () => {
             className="card"
           >
             <h3 className="text-xl font-semibold mb-4">Budget Allocation</h3>
-            <div className="space-y-4">
+            <div className="space-y-6 px-4">
               <Tooltip
                 term="Campaign Budget"
                 explanation="Your initial budget determines the scale of your user acquisition campaign. Higher budgets typically lead to more installs but require better optimization for profitability."
               >
-                <p className="text-gray-600">Select your campaign budget:</p>
+                <p className="text-lg font-medium text-gray-700 mb-2">Select your campaign budget:</p>
               </Tooltip>
-              
-              <div className="flex flex-col space-y-3">
-                {[500, 1000, 2000].map((amount) => (
-                  <button
-                    key={amount}
-                    onClick={() => {
-                      handleBudgetChange(amount);
-                      setStep('audience');
-                    }}
-                    className={`p-4 rounded-lg border-2 transition-all ${
-                      state.budget === amount
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-blue-300'
-                    }`}
+
+              <div className="w-full max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <div className="flex flex-col space-y-4">
+                  <label className="text-gray-700">Select Budget (in $):</label>
+                  <select 
+                    value={state.budget}
+                    onChange={(e) => handleBudgetChange(Number(e.target.value))}
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
-                    <span className="font-semibold">${amount}</span>
-                    <span className="text-sm text-gray-500 ml-2">
-                      {amount === 500 ? '(Conservative)' : amount === 2000 ? '(Aggressive)' : '(Balanced)'}
-                    </span>
-                  </button>
-                ))}
+                    {Array.from({ length: 16 }, (_, i) => 500 + i * 100).map(value => (
+                      <option key={value} value={value}>${value}</option>
+                    ))}
+                  </select>
+                  <p className="text-sm text-gray-500 text-center">
+                    Selected Budget: ${state.budget}
+                  </p>
+                </div>
               </div>
+              <button
+                onClick={() => setStep('audience')}
+                className="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors duration-200 mt-4"
+              >
+                Continue to Audience Targeting →
+              </button>
             </div>
           </motion.div>
         );
@@ -103,54 +108,96 @@ const UserAcquisition = () => {
             className="card"
           >
             <h3 className="text-xl font-semibold mb-4">Audience Targeting</h3>
-            <div className="space-y-6">
+            <div className="space-y-6 px-4">
               <div>
                 <Tooltip
-                  term="Age Group Targeting"
-                  explanation="Different age groups have varying app usage patterns and purchasing behaviors. Choose your target demographic carefully."
+                  term="Age Targeting"
+                  explanation="Select target age range"
                 >
-                  <p className="text-gray-600 mb-2">Age Group:</p>
+                  <div className="w-full bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-4">
+                    <div className="w-full px-4">
+                      <p className="text-lg font-medium text-gray-700 mb-4">Age Range:</p>
+                      <div className="flex flex-col space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-sm text-gray-600">Minimum Age:</label>
+                            <select 
+                              value={state.audienceTargeting.ageRange?.[0] || 18}
+                              onChange={(e) => {
+                                const minAge = Number(e.target.value);
+                                const maxAge = state.audienceTargeting.ageRange?.[1] || 84;
+                                let ageGroup;
+                                const avgAge = (minAge + maxAge) / 2;
+                                if (avgAge <= 24) ageGroup = '18-24';
+                                else if (avgAge <= 34) ageGroup = '25-34';
+                                else if (avgAge <= 44) ageGroup = '35-44';
+                                else if (avgAge <= 54) ageGroup = '45-54';
+                                else if (avgAge <= 64) ageGroup = '55-64';
+                                else ageGroup = '65-84+';
+                                
+                                handleAudienceChange('ageRange', [minAge, Math.max(minAge, maxAge)]);
+                                handleAudienceChange('ageGroup', ageGroup);
+                              }}
+                              className="w-full p-2 border border-gray-300 rounded-lg"
+                            >
+                              {Array.from({ length: 67 }, (_, i) => i + 18).map(age => (
+                                <option key={age} value={age}>{age} years</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-sm text-gray-600">Maximum Age:</label>
+                            <select 
+                              value={state.audienceTargeting.ageRange?.[1] || 84}
+                              onChange={(e) => {
+                                const maxAge = Number(e.target.value);
+                                const minAge = state.audienceTargeting.ageRange?.[0] || 18;
+                                let ageGroup;
+                                const avgAge = (minAge + maxAge) / 2;
+                                if (avgAge <= 24) ageGroup = '18-24';
+                                else if (avgAge <= 34) ageGroup = '25-34';
+                                else if (avgAge <= 44) ageGroup = '35-44';
+                                else if (avgAge <= 54) ageGroup = '45-54';
+                                else if (avgAge <= 64) ageGroup = '55-64';
+                                else ageGroup = '65-84+';
+                                
+                                handleAudienceChange('ageRange', [Math.min(minAge, maxAge), maxAge]);
+                                handleAudienceChange('ageGroup', ageGroup);
+                              }}
+                              className="w-full p-2 border border-gray-300 rounded-lg"
+                            >
+                              {Array.from({ length: 67 }, (_, i) => i + 18).map(age => (
+                                <option key={age} value={age}>{age} years</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-500 text-center">
+                          Selected Age Range: {state.audienceTargeting.ageRange?.[0] || 25} - {state.audienceTargeting.ageRange?.[1] || 84} years
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </Tooltip>
-                <div className="grid grid-cols-3 gap-3">
-                  {['18-24', '25-34', '35-44'].map((age) => (
-                    <button
-                      key={age}
-                      onClick={() => handleAudienceChange('ageGroup', age)}
-                      className={`p-2 rounded-lg border-2 transition-all ${
-                        state.audienceTargeting.ageGroup === age
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-blue-300'
-                      }`}
-                    >
-                      {age}
-                    </button>
-                  ))}
-                </div>
               </div>
 
-              <div>
-                <Tooltip
-                  term="Interest Targeting"
-                  explanation="Target users based on their demonstrated interests and behaviors."
-                >
-                  <p className="text-gray-600 mb-2">Interests:</p>
-                </Tooltip>
-                <div className="grid grid-cols-3 gap-3">
-                  {['Gaming', 'Education', 'Lifestyle'].map((interest) => (
+              <div className="w-full bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <p className="text-lg font-medium text-gray-700 mb-6">Interests:</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-2">
+                  {['Gaming', 'Social', 'Education', 'Entertainment', 'Productivity', 'Lifestyle'].map(interest => (
                     <button
                       key={interest}
                       onClick={() => {
-                        const currentInterests = state.audienceTargeting.interests;
-                        const newInterests = currentInterests.includes(interest)
+                        const currentInterests = state.audienceTargeting.interests || [];
+                        const updatedInterests = currentInterests.includes(interest)
                           ? currentInterests.filter(i => i !== interest)
                           : [...currentInterests, interest];
-                        handleAudienceChange('interests', newInterests);
+                        handleAudienceChange('interests', updatedInterests);
                       }}
-                      className={`p-2 rounded-lg border-2 transition-all ${
-                        state.audienceTargeting.interests.includes(interest)
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-blue-300'
-                      }`}
+                      className={`w-full py-4 px-5 rounded-lg text-sm font-medium transition-colors duration-200
+                        ${state.audienceTargeting.interests?.includes(interest)
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                     >
                       {interest}
                     </button>
@@ -167,7 +214,7 @@ const UserAcquisition = () => {
                 </button>
                 <button
                   onClick={() => setStep('creative')}
-                  disabled={!state.audienceTargeting.ageGroup || state.audienceTargeting.interests.length === 0}
+                  disabled={!state.audienceTargeting.ageRange || state.audienceTargeting.interests.length === 0}
                   className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Continue →
@@ -192,7 +239,7 @@ const UserAcquisition = () => {
               <p className="text-gray-600 mb-4">Select up to 2 ad formats:</p>
             </Tooltip>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 mt-4">
               {[
                 'Gameplay Videos',
                 'Playable Ads',
@@ -251,7 +298,7 @@ const UserAcquisition = () => {
               <p className="text-gray-600 mb-4">Select your bidding approach:</p>
             </Tooltip>
 
-            <div className="space-y-4">
+            <div className="space-y-4 mb-8 mt-4">
               {[
                 {
                   name: 'High',
@@ -298,26 +345,42 @@ const UserAcquisition = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto py-8">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="max-w-2xl mx-auto py-8 px-4"
+    >
+      <button
+        onClick={() => setShowSimulator(true)}
+        className="mb-8 w-full bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-semibold py-4 px-6 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center space-x-2"
+      >
+        <span className="text-xl">🎯</span>
+        <span>Simulate Campaign Performance</span>
+      </button>
+
+      {showSimulator && (
+        <StrategySimulator
+          phase="acquisition"
+          currentStrategy={state}
+          onClose={() => setShowSimulator(false)}
+        />
+      )}
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-blue-900">Phase 1: User Acquisition</h2>
-        <div className="flex justify-between mt-4">
+        <h2 className="text-2xl font-bold text-blue-900 mb-6">Phase 1: User Acquisition</h2>
+        <div className="flex items-center justify-center space-x-2 mb-8">
           {['budget', 'audience', 'creative', 'bidding'].map((phase, index) => (
-            <div
-              key={phase}
-              className={`flex items-center ${index !== 0 ? 'ml-4' : ''}`}
-            >
+            <div key={phase} className="flex items-center">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                className={`w-10 h-10 rounded-full flex items-center justify-center ${
                   step === phase
-                    ? 'bg-blue-500 text-white'
+                    ? 'bg-blue-500 text-white font-medium'
                     : 'bg-gray-200 text-gray-600'
                 }`}
               >
                 {index + 1}
               </div>
               {index < 3 && (
-                <div className="h-1 w-16 mx-2 bg-gray-200" />
+                <div className="h-1 w-12 mx-2 bg-gray-200" />
               )}
             </div>
           ))}
@@ -325,7 +388,7 @@ const UserAcquisition = () => {
       </div>
 
       {renderStep()}
-    </div>
+    </motion.div>
   );
 };
 

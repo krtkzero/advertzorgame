@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useGame } from '../../context/GameContext';
 import Tooltip from '../shared/Tooltip';
+import StrategySimulator from '../features/StrategySimulator';
 
 const RetentionEngagement = () => {
   const { state, dispatch } = useGame();
   const [showResults, setShowResults] = useState(false);
+  const [showSimulator, setShowSimulator] = useState(false);
 
   const handleStrategyChange = (field, value) => {
     dispatch({
@@ -144,6 +146,20 @@ const RetentionEngagement = () => {
       animate={{ opacity: 1, y: 0 }}
       className="max-w-2xl mx-auto py-8"
     >
+      <button
+        onClick={() => setShowSimulator(true)}
+        className="mb-6 w-full bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-semibold py-3 px-4 rounded-lg transition-colors duration-200"
+      >
+        🎯 Simulate Retention Strategy
+      </button>
+
+      {showSimulator && (
+        <StrategySimulator
+          phase="retention"
+          currentStrategy={state}
+          onClose={() => setShowSimulator(false)}
+        />
+      )}
       <div className="card">
         <h3 className="text-2xl font-bold text-blue-900 mb-6">Phase 2: Retention & Engagement</h3>
         

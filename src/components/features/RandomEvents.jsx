@@ -17,15 +17,55 @@ const events = {
         }
       })
     },
+    // Add these new events
     {
-      id: 'market_competition',
-      title: 'Increased Competition 📊',
-      description: 'Market is getting crowded. CPI increased by 10%.',
+      id: 'ad_network_boost',
+      title: 'Ad Network Boost 📈',
+      description: 'Ad network algorithm favors your ads! +20% CTR',
       impact: (state) => ({
         type: 'SET_PHASE1_RESULTS',
         payload: {
           ...state.phase1Results,
-          cpi: (state.phase1Results.cpi * 1.1).toFixed(2)
+          clicks: Math.floor(state.phase1Results.clicks * 1.2),
+          ctr: ((state.phase1Results.clicks * 1.2 / state.phase1Results.impressions) * 100).toFixed(2)
+        }
+      })
+    },
+    {
+      id: 'targeting_improvement',
+      title: 'Targeting Sweet Spot 🎯',
+      description: 'Your audience targeting is performing exceptionally well! +25% CVR',
+      impact: (state) => ({
+        type: 'SET_PHASE1_RESULTS',
+        payload: {
+          ...state.phase1Results,
+          installs: Math.floor(state.phase1Results.clicks * (parseFloat(state.phase1Results.cvr) * 1.25 / 100)),
+          cvr: (parseFloat(state.phase1Results.cvr) * 1.25).toFixed(2)
+        }
+      })
+    },
+    {
+      id: 'platform_feature',
+      title: 'Platform Feature 🌟',
+      description: 'Your app got featured! +30% impressions without additional cost',
+      impact: (state) => ({
+        type: 'SET_PHASE1_RESULTS',
+        payload: {
+          ...state.phase1Results,
+          impressions: Math.floor(state.phase1Results.impressions * 1.3),
+          ctr: ((state.phase1Results.clicks / (state.phase1Results.impressions * 1.3)) * 100).toFixed(2)
+        }
+      })
+    },
+    {
+      id: 'competitor_exit',
+      title: 'Market Opportunity 📊',
+      description: 'A major competitor paused their campaigns! -15% CPI',
+      impact: (state) => ({
+        type: 'SET_PHASE1_RESULTS',
+        payload: {
+          ...state.phase1Results,
+          cpi: (state.phase1Results.cpi * 0.85).toFixed(2)
         }
       })
     }
@@ -122,8 +162,8 @@ const useRandomEvents = (phase) => {
 
   useEffect(() => {
     const triggerRandomEvent = () => {
-      // 30% chance of event occurring
-      if (Math.random() > 0.3 || eventHistory.length >= 2) return;
+      // Increased chance from 30% to 40%
+      if (Math.random() > 0.4 || eventHistory.length >= 3) return; // Increased max events from 2 to 3
 
       const phaseEvents = events[phase];
       if (!phaseEvents) return;

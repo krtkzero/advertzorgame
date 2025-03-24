@@ -5,19 +5,32 @@ import { useGame } from '../../context/GameContext';
 const recommendations = {
   acquisition: {
     highCpi: {
-      condition: (state) => state.phase1Results.cpi > 2.0,
-      message: "Your CPI is quite high. Consider testing lower-cost ad formats or adjusting your bidding strategy.",
-      icon: "💡"
+      condition: (state) => state.phase1Results.cpi > 2.5,
+      message: "Your CPI is high. Try adjusting your bidding strategy or testing different ad formats.",
+      icon: "💰"
     },
     lowCtr: {
-      condition: (state) => parseFloat(state.phase1Results.ctr) < 2.0,
+      condition: (state) => parseFloat(state.phase1Results.ctr) < 1.8,
       message: "Your CTR is low. Try different creative formats or target audiences that might be more interested in your app.",
       icon: "🎯"
     },
     poorTargeting: {
-      condition: (state) => state.audienceTargeting.interests.length < 2,
+      condition: (state) => state.audienceTargeting.interests.length < 3,
       message: "Broader audience targeting might help you find more potential users. Consider selecting additional interests.",
       icon: "👥"
+    },
+    highBudgetLowROI: {
+      condition: (state) => state.budget > 1500 && state.phase1Results.cpi > 2.0,
+      message: "High budget but low ROI. Consider optimizing your targeting before increasing spend.",
+      icon: "📊"
+    },
+    narrowAgeRange: {
+      condition: (state) => {
+        const [minAge, maxAge] = state.audienceTargeting.ageRange || [18, 84];
+        return (maxAge - minAge) < 20;
+      },
+      message: "Your age targeting might be too narrow. Consider expanding to reach more potential users.",
+      icon: "🎲"
     }
   },
   retention: {
@@ -80,41 +93,43 @@ const RecommendationCard = ({ recommendation, onDismiss }) => (
 
 const GameAssistant = ({ phase }) => {
   const { state } = useGame();
-  const [activeRecommendations, setActiveRecommendations] = useState([]);
+  const [activeRecommendation, setActiveRecommendation] = useState(null);
   const [dismissedRecommendations, setDismissedRecommendations] = useState(new Set());
 
   useEffect(() => {
     if (!recommendations[phase]) return;
 
     // Get relevant recommendations for current phase
-    const phaseRecommendations = Object.entries(recommendations[phase])
+    const eligibleRecommendations = Object.entries(recommendations[phase])
       .filter(([id, rec]) => {
         return rec.condition(state) && !dismissedRecommendations.has(id);
       })
       .map(([id, rec]) => ({ id, ...rec }));
 
-    setActiveRecommendations(phaseRecommendations);
+    // Randomly select one recommendation if there are any eligible
+    if (eligibleRecommendations.length > 0) {
+      const randomIndex = Math.floor(Math.random() * eligibleRecommendations.length);
+      setActiveRecommendation(eligibleRecommendations[randomIndex]);
+    } else {
+      setActiveRecommendation(null);
+    }
   }, [phase, state, dismissedRecommendations]);
 
   const handleDismiss = (recommendationId) => {
     setDismissedRecommendations(prev => new Set([...prev, recommendationId]));
-    setActiveRecommendations(prev => 
-      prev.filter(rec => rec.id !== recommendationId)
-    );
+    setActiveRecommendation(null);
   };
 
-  if (activeRecommendations.length === 0) return null;
+  if (!activeRecommendation) return null;
 
   return (
     <div className="fixed right-4 top-4 w-80 z-50">
       <AnimatePresence>
-        {activeRecommendations.map(recommendation => (
-          <RecommendationCard
-            key={recommendation.id}
-            recommendation={recommendation}
-            onDismiss={() => handleDismiss(recommendation.id)}
-          />
-        ))}
+        <RecommendationCard
+          key={activeRecommendation.id}
+          recommendation={activeRecommendation}
+          onDismiss={() => handleDismiss(activeRecommendation.id)}
+        />
       </AnimatePresence>
     </div>
   );
